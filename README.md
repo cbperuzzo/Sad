@@ -1,2 +1,0 @@
-# Sad
-circuito de sad
