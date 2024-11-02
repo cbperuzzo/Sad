@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 USE ieee.numeric_std.ALL;
-entity sad is
+entity sadtle is
 port(
 	clk :in std_logic;
 	ma,mb :in std_logic_vector(7 downto 0);
@@ -13,10 +13,10 @@ port(
 	
 );
     
-end sad;
+end sadtle;
 
 
-architecture sad_arch of sad is 
+architecture sad_arch of sadtle is 
 	signal azi : std_logic;
 	signal si: std_logic_vector(6 downto 0);
 	signal nextSi: std_logic_vector(6 downto 0);
@@ -49,7 +49,7 @@ begin
 		generic map(8)
 		port map(spa,spb,subab);
 
-	abss: entity work.absolutev2
+	abss: entity work.absolute
 		generic map(8)
 		port map(subab,preabsab);
 	absab<="000000"&preabsab;
