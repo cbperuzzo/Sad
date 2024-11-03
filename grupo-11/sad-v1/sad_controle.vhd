@@ -62,11 +62,15 @@ begin
                         cpa <= '1'; cpb <= '1';
                         zsoma <= '0'; csoma <= '0';
 
+                ProximoEstado <= S4;
+
             when S4 =>  
                         pronto <= '0'; read_mem <= '0';
                         zi <= '0'; ci <= '1';
                         cpa <= '0'; cpb <= '0';
                         zsoma <= '0'; csoma <= '1';
+                
+                ProximoEstado <= S2;
 
             when S5 =>  
                         pronto <= '0'; read_mem <= '0';
@@ -74,6 +78,8 @@ begin
                         cpa <= '0'; cpb <='0';
                         zsoma <= '1'; csoma <= '0';
                         csad_reg <= '1';
+                
+                ProximoEstado <= S0;
 
         end case;
     end process;
