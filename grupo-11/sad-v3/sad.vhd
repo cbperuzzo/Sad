@@ -1,122 +1,83 @@
-library ieee;
-use ieee.std_logic_1164.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
-entity sad is
-port(
-	clk :in std_logic;
-	ma0,ma1,ma2,ma3,mb0,mb1,mb2,mb3 :in std_logic_vector(7 downto 0);
-	menor :out std_logic;
-	ssad :out std_logic_vector(13 downto 0);
-	ende :out std_logic_vector(3 downto 0);
-	zi,ci,papb,zsoma,csoma,csadr :in std_logic
-	--zi e zsoma sao "resets" dos registradores, e serao invertidos 
-	
-);
-    
-end sad;
+use IEEE.math_real.all;
 
+ENTITY sad IS
+	GENERIC (
+		-- obrigatÃ³rio ---
+		-- defina as operaÃ§Ãµes considerando o nÃºmero B de bits por amostra
+		B : POSITIVE := 8; -- nÃºmero de bits por amostra
+		-----------------------------------------------------------------------
+		-- desejado (i.e., nÃ£o obrigatÃ³rio) ---
+		-- se vocÃª desejar, pode usar os valores abaixo para descrever uma
+		-- entidade que funcione tanto para a SAD v1 quanto para a SAD v3.
+		N : POSITIVE := 64; -- nÃºmero de amostras por bloco
+		P : POSITIVE := 4 -- nÃºmero de amostras de cada bloco lidas em paralelo
+		-----------------------------------------------------------------------
+	);
+	PORT (
+		-- ATENÃ‡ÃƒO: modifiquem a largura de bits das entradas e saÃ­das que
+		-- estÃ£o marcadas com DEFINIR de acordo com o nÃºmero de bits B e
+		-- de acordo com o necessÃ¡rio para cada versÃ£o da SAD (tentem utilizar
+		-- os valores N e P descritos acima para criar apenas uma descriÃ§Ã£o
+		-- configurÃ¡vel que funcione tanto para a SAD v1 quanto para a SAD v3).
+		-- NÃ£o modifiquem os nomes das portas, apenas a largura de bits quando
+		-- for necessÃ¡rio.
+		clk : IN STD_LOGIC; -- ck
+		enable : IN STD_LOGIC; -- iniciar
+		reset : IN STD_LOGIC; -- reset
+		sample_ori : IN STD_LOGIC_VECTOR ((P*N)-1 downto 0); -- Mem_A[end]
+		sample_can : IN STD_LOGIC_VECTOR ((P*N)-1 downto 0); -- Mem_B[end]
+		read_mem : OUT STD_LOGIC; -- read
+		address : OUT STD_LOGIC_VECTOR (integer(ceil(log2(real(N)/real(P))))- 1 DOWNTO 0); -- end
+		sad_value : OUT STD_LOGIC_VECTOR (13 DOWNTO 0); -- SAD
+		done: OUT STD_LOGIC -- pronto
+	);
+END ENTITY; -- sad
 
-architecture sad_arch of sad is 
-	signal azi : std_logic;
-	signal si: std_logic_vector(4 downto 0);
-	signal nextSi: std_logic_vector(4 downto 0);
-	--------------------------------------------
-	signal spa0,spa1,spa2,spa3,spb0,spb1,spb2,spb3:std_logic_vector(7 downto 0);
-	signal subab0,subab1,subab2,subab3,
-	absab0,absab1,absab2,absab3
-	:std_logic_vector(7 downto 0);
-	signal nextsum,sum:std_logic_vector(13 downto 0);
-	signal absf:std_logic_vector(9 downto 0);
-	signal azsoma: std_logic;
-	
-begin
+ARCHITECTURE arch OF sad IS
+	-- descrever
+	-- usar sad_bo e sad_bc (sad_operativo e sad_controle)
+	-- nÃ£o codifiquem toda a arquitetura apenas neste arquivo
+	-- modularizem a descriÃ§Ã£o de vocÃªs...
+    signal zi, ci, papb, zsoma, csoma, csad_reg, menor : std_logic;
+	 
+	 
+BEGIN
 
-	azi<=not zi;
-	reg_i: entity work.reg_g
-		generic map(5)
-		port map(nextSi,si,ci,azi,clk);
-	ende<=si(3 downto 0);
-	menor<=si(4);
-	nextSi<=std_logic_vector(unsigned('0'&si(3 downto 0)) + 1);
-	----------------------------------------------------------
-	
+    sad_bc: ENTITY WORK.sad_controle
+        PORT MAP (
+            iniciar   => enable,
+            reset     => reset,
+            clk       => clk,    
+            menor     => menor,
+            pronto    => done,
+            read_mem  => read_mem,
+            zi        => zi,
+            ci        => ci,
+            papb 	  => papb,
+            zsoma     => zsoma,
+            csoma     => csoma,
+            csad_reg  => csad_reg 
+        );
 
-	pa0: entity work.reg_g
-		generic map(8)
-		port map(ma0,spa0,papb,'1',clk);
-	pa1: entity work.reg_g
-		generic map(8)
-		port map(ma1,spa1,papb,'1',clk);
+    sad_bo: ENTITY WORK.sad_operativo
+        GENERIC MAP(B, N, P)
+		  PORT MAP (
+			clk 	=> clk,
+			ma 		=> sample_ori,
+			mb 		=> sample_can,
+			menor 	=> menor,
+			ssad 	=> sad_value,
+			ende 	=> address,
+			zi 		=> zi,
+			ci 		=> ci,
+			papb 	=> papb,
+			zsoma 	=> zsoma,
+			csoma 	=> csoma,
+			csad_reg => csad_reg
 
-	pa2: entity work.reg_g
-		generic map(8)
-		port map(ma2,spa2,papb,'1',clk);
-	pa3: entity work.reg_g
-		generic map(8)
-		port map(ma3,spa3,papb,'1',clk);
+        );
 
-
-	pb0: entity work.reg_g
-		generic map(8)
-		port map(mb0,spb0,papb,'1',clk);
-	pb1: entity work.reg_g
-		generic map(8)
-		port map(mb1,spb1,papb,'1',clk);
-	pb2: entity work.reg_g
-		generic map(8)
-		port map(mb2,spb2,papb,'1',clk);
-	pb3: entity work.reg_g
-		generic map(8)
-		port map(mb3,spb3,papb,'1',clk);
-
-	dif0: entity work.pdif
-		generic map(8)
-		port map(spa0,spb0,subab0);
-	dif1: entity work.pdif
-		generic map(8)
-		port map(spa1,spb1,subab1);
-	dif2: entity work.pdif
-		generic map(8)
-		port map(spa2,spb2,subab2);
-	dif3: entity work.pdif
-		generic map(8)
-		port map(spa3,spb3,subab3);
-
-	abss0: entity work.absolutev2
-		generic map(8)
-		port map(subab0,absab0);
-	
-
-	abss1: entity work.absolutev2
-		generic map(8)
-		port map(subab1,absab1);
-	
-
-	abss2: entity work.absolutev2
-		generic map(8)
-		port map(subab2,absab2);
-	
-
-	abss3: entity work.absolutev2
-		generic map(8)
-		port map(subab3,absab3);
-	
-	at: entity work.adderTree4
-		generic map(8)
-		port map(absab0,absab1,absab2,absab3,absf);
-	
-	
-	
-
-	azsoma<= not zsoma;
-	
-	reg_sum: entity work.reg_g
-		generic map(14)
-		port map(nextsum,sum,csoma,azsoma,clk);
-	nextsum<=std_logic_vector(signed(sum)+signed("0000"&absf));
-	
-	reg_sad:entity work.reg_g
-		generic map(14)
-		port map(sum,ssad,csadr,'1',clk);
-	
-end sad_arch;
+END ARCHITECTURE; -- arch

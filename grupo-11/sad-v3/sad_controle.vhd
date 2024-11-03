@@ -6,7 +6,7 @@ entity sad_controle is
         iniciar, reset, clk: in std_logic;
         menor: in std_logic;
         pronto, read_mem: out std_logic;
-        zi, ci, cpa, cpb, zsoma, csoma, csad_reg: out std_logic
+        zi, ci, papb, zsoma, csoma, csad_reg: out std_logic
         );
 end sad_controle;
 
@@ -15,10 +15,10 @@ architecture comportamento of sad_controle is
     signal EstadoAtual, ProximoEstado : Tipo_estado;
 begin
     
-    process(ck, reset)
+    process(clk, reset)
     begin
         if reset = '1' then EstadoAtual <= S0;
-        elsif (rising_edge(ck)) then
+        elsif (rising_edge(clk)) then
             EstadoAtual <= ProximoEstado;
         end if;
     end process;
@@ -29,7 +29,7 @@ begin
             when S0 =>  
                         pronto <= '1'; read_mem <= '0';
                         zi <= '1'; ci <= '0';
-                        cpa <= '0'; cpb <= '0';
+                        papb <= '0';
                         zsoma <= '0'; csoma <= '0';
                         csad_reg <= '0';
                 
@@ -40,7 +40,7 @@ begin
             when S1 =>  
                         pronto <= '0'; read_mem <= '0'; 
                         zi <= '1'; ci <= '1'; 
-                        cpa <= '0'; cpb <= '0';
+                        papb <= '0';
                         zsoma <= '1'; csoma <= '1';
                         csad_reg <= '0';
                 
@@ -48,7 +48,7 @@ begin
             when S2 =>  
                         pronto <= '0'; read_mem <= '0';
                         zi <= '0'; ci <= '0';
-                        cpa <= '0'; cpb <= '0';
+                        papb <= '0';
                         zsoma <= '0'; csoma <= '0';
                 
                 
@@ -59,7 +59,7 @@ begin
             when S3 =>  
                         pronto <= '0'; read_mem <= '1';
                         zi <= '0'; ci <= '0';
-                        cpa <= '1'; cpb <= '1';
+                        papb <= '1';
                         zsoma <= '0'; csoma <= '0';
 
                 ProximoEstado <= S4;
@@ -67,7 +67,7 @@ begin
             when S4 =>  
                         pronto <= '0'; read_mem <= '0';
                         zi <= '0'; ci <= '1';
-                        cpa <= '0'; cpb <= '0';
+                        papb <= '0';
                         zsoma <= '0'; csoma <= '1';
                 
                 ProximoEstado <= S2;
@@ -75,7 +75,7 @@ begin
             when S5 =>  
                         pronto <= '0'; read_mem <= '0';
                         zi <= '1'; ci <= '0';
-                        cpa <= '0'; cpb <='0';
+                        papb <= '0';
                         zsoma <= '1'; csoma <= '0';
                         csad_reg <= '1';
                 
