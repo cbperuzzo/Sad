@@ -1,13 +1,20 @@
 library ieee;
 use ieee.std_logic_1164.all;
 USE ieee.numeric_std.ALL;
+use IEEE.math_real.all;
 entity sad_operativo is
+generic(
+B:positive; --n bits por amostra
+N:positive; --n de amostra 
+P:positive --amostras em paralelo por bloco
+
+);
 port(
 	clk :in std_logic;
-	ma,mb :in std_logic_vector(7 downto 0);
+	ma,mb :in std_logic_vector(B-1 downto 0);
 	menor :out std_logic;
 	ssad :out std_logic_vector(13 downto 0);
-	ende :out std_logic_vector(5 downto 0);
+	ende :out std_logic_vector(integer(ceil(log2(real(N)/real(P))))-1 downto 0);
 	zi,ci,cpa,cpb,zsoma,csoma,csad_reg :in std_logic
 	--zi e zsoma sao "resets" dos registradores, e serao invertidos 
 	
@@ -17,9 +24,10 @@ end sad_operativo;
 
 
 architecture sad_arch of sad_operativo is 
+	constant biti: integer :=integer(ceil(log2(real(N)/real(P))));
 	signal azi : std_logic;
-	signal si: std_logic_vector(6 downto 0);
-	signal nextSi: std_logic_vector(6 downto 0);
+	signal si: std_logic_vector(biti downto 0);
+	signal nextSi: std_logic_vector(biti downto 0);
 	--------------------------------------------
 	signal spa,spb,subab,preabsab:std_logic_vector(7 downto 0);
 	signal nextsum,sum,absab:std_logic_vector(13 downto 0);
@@ -27,13 +35,13 @@ architecture sad_arch of sad_operativo is
 	
 begin
 
-	azi <= not zi; -- azi ativa o reset síncrono do registrador caso zi seja '1', isso substitui a necessidade de um mux
+	azi <= not zi;
 	reg_i: entity work.reg_g
 		generic map(7)
 		port map(nextSi,si,ci,azi,clk);
-	ende <= si(5 downto 0); -- Endereço da memória a ser acessado. É um valor de 0 (inclusive) a 63 (inclusive), necessitando somente 6 bits
-	menor <= not si(6); -- Queremos '1' para 'é menor', '0' para 'é maior ou igual'
-	nextSi <= std_logic_vector(unsigned('0'&si(5 downto 0)) + 1); -- Valor a ser carregado no registrador
+	ende<=si(5 downto 0);
+	menor<= not si(6);
+	nextSi<=std_logic_vector(unsigned('0'&si(5 downto 0)) + 1);
 	----------------------------------------------------------
 	
 

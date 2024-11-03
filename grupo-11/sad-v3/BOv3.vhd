@@ -47,7 +47,7 @@ begin
 		generic map(5)
 		port map(nextSi,si,ci,azi,clk);
 	ende<=si(3 downto 0);
-	menor<=si(4);
+	menor<= not si(4);
 	nextSi<=std_logic_vector(unsigned('0'&si(3 downto 0)) + 1);
 	----------------------------------------------------------
 	

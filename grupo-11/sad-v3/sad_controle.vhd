@@ -15,10 +15,10 @@ architecture comportamento of sad_controle is
     signal EstadoAtual, ProximoEstado : Tipo_estado;
 begin
     
-    process(clk, reset)
+    process(ck, reset)
     begin
         if reset = '1' then EstadoAtual <= S0;
-        elsif (rising_edge(clk)) then
+        elsif (rising_edge(ck)) then
             EstadoAtual <= ProximoEstado;
         end if;
     end process;
@@ -84,3 +84,4 @@ begin
         end case;
     end process;
 end comportamento;
+   
