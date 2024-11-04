@@ -7,19 +7,19 @@
     },
     "quartus": {
     "os": "Windows 11",
-    "versao": "13.1.0 Build 162 10/23/2013 SJ Web Edition",
+    "versao": "13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition",
     "fpga": {
-    "familia": "familia",
-    "dispositivo": "dispositivo"
+    "familia": "Cyclone III",
+    "dispositivo": "EP3C5E144C7"
     }
     },
     "utilizacao": {
-    "total combinational functions": 123,
-    "dedicated logic registers": 12,
-    "total pins": 5
+    "total combinational functions": 53,
+    "dedicated logic registers": 57,
+    "total pins": 41
     },
     "atraso": {
-    "Fmax": 2.5,
+    "Fmax": 166.69,
     "unidade": "MHz"
     }
 }
