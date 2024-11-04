@@ -3,18 +3,20 @@ use ieee.std_logic_1164.all;
 USE ieee.numeric_std.ALL;
 use IEEE.math_real.all;
 
+--1.0
+
 entity sad_operativo is
 generic(
-B:positive; --n bits por amostra
-N:positive; --n de amostra 
-P:positive --amostras em paralelo por bloco
+B:positive:=8; --n bits por amostra
+N:positive:=64; --n de amostra 
+P:positive:=4--amostras em paralelo por bloco
  
 );
 port(
 	clk :in std_logic;
 	--ma0,ma1,ma2,ma3,mb0,mb1,mb2,mb3 :in std_logic_vector(7 downto 0);
-	ma : in std_logic_vector((P*N)-1 downto 0);
-	mb : in std_logic_vector((P*N)-1 downto 0);
+	ma : in std_logic_vector((P*b)-1 downto 0);
+	mb : in std_logic_vector((P*b)-1 downto 0);
 	menor :out std_logic;
 	ssad :out std_logic_vector(13 downto 0);
 	ende :out std_logic_vector( integer(ceil(log2(real(N)/real(P))))-1 downto 0);
@@ -58,7 +60,6 @@ begin
 	pa1: entity work.reg_g
 		generic map(8)
 		port map(ma(23 downto 16),spa1,papb,'1',clk);
-
 	pa2: entity work.reg_g
 		generic map(8)
 		port map(ma(15 downto 8),spa2,papb,'1',clk);
@@ -75,10 +76,10 @@ begin
 		port map(mb(23 downto 16),spb1,papb,'1',clk);
 	pb2: entity work.reg_g
 		generic map(8)
-		port map(ma(15 downto 8),spb2,papb,'1',clk);
+		port map(mb(15 downto 8),spb2,papb,'1',clk);
 	pb3: entity work.reg_g
 		generic map(8)
-		port map(ma(7 downto 0),spb3,papb,'1',clk);
+		port map(mb(7 downto 0),spb3,papb,'1',clk);
 
 	dif0: entity work.pdif
 		generic map(8)

@@ -17,13 +17,11 @@ signal mem: std_logic_vector(g-1 downto 0);
 	
 BEGIN
 
-	reg:process(clk) is begin
-		if clk'event and clk = '1' then
-			if r = '0' then
-				mem <= (others=>'0');
-			elsif e = '1' then 
-				mem<=d;
-			end if;
+	reg:process(clk,e,r) is begin
+		if r='0' then
+			mem <=(others=>'0');
+		elsif clk'event and clk = '1' and e='1' then
+			mem<=d;
 		end if;
 	end process;
 

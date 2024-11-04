@@ -27,8 +27,8 @@ ENTITY sad IS
 		clk : IN STD_LOGIC; -- ck
 		enable : IN STD_LOGIC; -- iniciar
 		reset : IN STD_LOGIC; -- reset
-		sample_ori : IN STD_LOGIC_VECTOR ((P*N)-1 downto 0); -- Mem_A[end]
-		sample_can : IN STD_LOGIC_VECTOR ((P*N)-1 downto 0); -- Mem_B[end]
+		sample_ori : IN STD_LOGIC_VECTOR ((P*B)-1 downto 0); -- Mem_A[end]
+		sample_can : IN STD_LOGIC_VECTOR ((P*B)-1 downto 0); -- Mem_B[end]
 		read_mem : OUT STD_LOGIC; -- read
 		address : OUT STD_LOGIC_VECTOR (integer(ceil(log2(real(N)/real(P))))- 1 DOWNTO 0); -- end
 		sad_value : OUT STD_LOGIC_VECTOR (13 DOWNTO 0); -- SAD

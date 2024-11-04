@@ -23,6 +23,7 @@ begin
         end if;
     end process;
 
+
     process (EstadoAtual, iniciar, menor)
     begin
         case EstadoAtual is
