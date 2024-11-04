@@ -1,7 +1,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
-USE IEEE.math_real.ALL;
+use IEEE.math_real.all;
 
 ENTITY sad IS
 	GENERIC (
@@ -27,12 +27,12 @@ ENTITY sad IS
 		clk : IN STD_LOGIC; -- ck
 		enable : IN STD_LOGIC; -- iniciar
 		reset : IN STD_LOGIC; -- reset
-		sample_ori : IN STD_LOGIC_VECTOR ((P * B) - 1 DOWNTO 0); -- Mem_A[end]
-		sample_can : IN STD_LOGIC_VECTOR ((P * B) - 1 DOWNTO 0); -- Mem_B[end]
+		sample_ori : IN STD_LOGIC_VECTOR ((P*B)-1 downto 0); -- Mem_A[end]
+		sample_can : IN STD_LOGIC_VECTOR ((P*B)-1 downto 0); -- Mem_B[end]
 		read_mem : OUT STD_LOGIC; -- read
-		address : OUT STD_LOGIC_VECTOR (INTEGER(ceil(log2(real(N)/real(P)))) - 1 DOWNTO 0); -- end
+		address : OUT STD_LOGIC_VECTOR (integer(ceil(log2(real(N)/real(P))))- 1 DOWNTO 0); -- end
 		sad_value : OUT STD_LOGIC_VECTOR (13 DOWNTO 0); -- SAD
-		done : OUT STD_LOGIC -- pronto
+		done: OUT STD_LOGIC -- pronto
 	);
 END ENTITY; -- sad
 
@@ -41,41 +41,42 @@ ARCHITECTURE arch OF sad IS
 	-- usar sad_bo e sad_bc (sad_operativo e sad_controle)
 	-- nÃ£o codifiquem toda a arquitetura apenas neste arquivo
 	-- modularizem a descriÃ§Ã£o de vocÃªs...
-	SIGNAL zi, ci, papb, zsoma, csoma, csad_reg, menor : std_logic;
- 
- 
+    signal zi, ci, papb, zsoma, csoma, csad_reg, menor : std_logic;
+	 
+	 
 BEGIN
-	sad_bc : ENTITY WORK.sad_controle
-		PORT MAP(
-			iniciar => enable, 
-			reset => reset, 
-			clk => clk, 
-			menor => menor, 
-			pronto => done, 
-			read_mem => read_mem, 
-			zi => zi, 
-			ci => ci, 
-			papb => papb, 
-			zsoma => zsoma, 
-			csoma => csoma, 
-			csad_reg => csad_reg
-		);
 
-			sad_bo : ENTITY WORK.sad_operativo
-					GENERIC MAP(B, N, P)
-				PORT MAP(
-					clk => clk, 
-					ma => sample_ori, 
-					mb => sample_can, 
-					menor => menor, 
-					ssad => sad_value, 
-					ende => address, 
-					zi => zi, 
-					ci => ci, 
-					papb => papb, 
-					zsoma => zsoma, 
-					csoma => csoma, 
-					csad_reg => csad_reg
-				);
+    sad_bc: ENTITY WORK.sad_controle(comportamento)
+        PORT MAP (
+            iniciar   => enable,
+            reset     => reset,
+            clk       => clk,    
+            menor     => menor,
+            pronto    => done,
+            read_mem  => read_mem,
+            zi        => zi,
+            ci        => ci,
+            papb 	  => papb,
+            zsoma     => zsoma,
+            csoma     => csoma,
+            csad_reg  => csad_reg 
+        );
+
+    sad_bo: ENTITY WORK.sad_operativo(sad_arch)
+        GENERIC MAP(B, N, P)
+		  PORT MAP (
+			clk 	=> clk,
+			ma 		=> sample_ori,
+			mb 		=> sample_can,
+			menor 	=> menor,
+			ssad 	=> sad_value,
+			ende 	=> address,
+			zi 		=> zi,
+			ci 		=> ci,
+			papb 	=> papb,
+			zsoma 	=> zsoma,
+			csoma 	=> csoma,
+			csad_reg => csad_reg
+        );
 
 END ARCHITECTURE; -- arch
