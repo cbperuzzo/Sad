@@ -102,7 +102,7 @@ BEGIN
 					ci <= '0';
 					cpa <= '0';
 					cpb <= '0';
-					zsoma <= '1';
+					zsoma <= '0';
 					csoma <= '0';
 					csad_reg <= '1';
  
