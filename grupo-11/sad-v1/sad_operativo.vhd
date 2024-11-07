@@ -15,8 +15,11 @@ ENTITY sad_operativo IS
 		menor : OUT std_logic;
 		ssad : OUT std_logic_vector(13 DOWNTO 0);
 		ende : OUT std_logic_vector(INTEGER(ceil(log2(real(N)/real(P)))) - 1 DOWNTO 0);
-		zi, ci, cpa, cpb, zsoma, csoma, csad_reg : IN std_logic
+		zi, ci, cpa, cpb, zsoma, csoma, csad_reg : IN std_logic;
 		--zi e zsoma sao "resets" dos registradores, e serao invertidos
+		s,ns : out std_logic_vector(13 downto 0);
+		ssubab: out std_logic_vector(8 downto 0);
+		sabsab: out std_logic_vector(13 downto 0)
  
 	);
  
@@ -27,11 +30,14 @@ ARCHITECTURE sad_arch OF sad_operativo IS
 	SIGNAL si : std_logic_vector(biti DOWNTO 0);
 	SIGNAL nextSi : std_logic_vector(biti DOWNTO 0);
 	--------------------------------------------
-	SIGNAL spa, spb, subab, preabsab : std_logic_vector(7 DOWNTO 0);
+	SIGNAL spa, spb, preabsab : std_logic_vector(7 DOWNTO 0);
+	signal subab : std_logic_vector(8 downto 0);
 	SIGNAL nextsum, sum, absab : std_logic_vector(13 DOWNTO 0);
 	SIGNAL azsoma : std_logic;
  
 BEGIN
+	sabsab<=absab;
+	ssubab<=subab;
 	azi <= NOT zi;
 	reg_i : ENTITY work.reg_g
 			GENERIC MAP(7)
@@ -40,8 +46,10 @@ BEGIN
 		menor <= NOT si(6);
 		nextSi <= std_logic_vector(unsigned('0' & si(5 DOWNTO 0)) + 1);
 		----------------------------------------------------------
- 
-
+ 		
+		ns<=nextsum;
+		s<=sum;
+		
 		pa : ENTITY work.reg_g
 				GENERIC MAP(8)
 			PORT MAP(ma, spa, cpa, '1', clk);
@@ -64,7 +72,7 @@ BEGIN
 						reg_sum : ENTITY work.reg_g
 								GENERIC MAP(14)
 							PORT MAP(nextsum, sum, csoma, azsoma, clk);
-							nextsum <= std_logic_vector(signed(sum) + signed(absab));
+							nextsum <= std_logic_vector(unsigned(sum) + unsigned(absab));
  
 							reg_sad : ENTITY work.reg_g
 									GENERIC MAP(14)

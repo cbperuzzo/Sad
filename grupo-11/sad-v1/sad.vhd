@@ -33,6 +33,7 @@ ENTITY sad IS
 		address : OUT STD_LOGIC_VECTOR (INTEGER(ceil(log2(real(N)/real(P)))) - 1 DOWNTO 0); -- end
 		sad_value : OUT STD_LOGIC_VECTOR (13 DOWNTO 0); -- SAD
 		done : OUT STD_LOGIC -- pronto
+		
 	);
 END ENTITY; -- sad
 
@@ -42,7 +43,9 @@ ARCHITECTURE arch OF sad IS
 	-- nÃ£o codifiquem toda a arquitetura apenas neste arquivo
 	-- modularizem a descriÃ§Ã£o de vocÃªs...
 	SIGNAL zi, ci, cpa, cpb, zsoma, csoma, csad_reg, menor : std_logic;
- 
+ 	signal s,ns : std_logic_vector(13 downto 0);
+	signal tsubab: std_logic_vector(8 downto 0);
+	signal tabsab: std_logic_vector(13 downto 0);
  
 BEGIN
 	sad_bc : ENTITY WORK.sad_controle
@@ -77,7 +80,11 @@ BEGIN
 					cpb => cpb, 
 					zsoma => zsoma, 
 					csoma => csoma, 
-					csad_reg => csad_reg
+					csad_reg => csad_reg,
+					s=>s,
+					ns=>ns,
+					sabsab=>tabsab,
+					ssubab=>tsubab
 				);
 
 END ARCHITECTURE; -- arch
