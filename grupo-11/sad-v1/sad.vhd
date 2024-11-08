@@ -43,9 +43,6 @@ ARCHITECTURE arch OF sad IS
 	-- nÃ£o codifiquem toda a arquitetura apenas neste arquivo
 	-- modularizem a descriÃ§Ã£o de vocÃªs...
 	SIGNAL zi, ci, cpa, cpb, zsoma, csoma, csad_reg, menor : std_logic;
- 	signal s,ns : std_logic_vector(13 downto 0);
-	signal tsubab: std_logic_vector(8 downto 0);
-	signal tabsab: std_logic_vector(13 downto 0);
  
 BEGIN
 	sad_bc : ENTITY WORK.sad_controle
@@ -80,11 +77,7 @@ BEGIN
 					cpb => cpb, 
 					zsoma => zsoma, 
 					csoma => csoma, 
-					csad_reg => csad_reg,
-					s=>s,
-					ns=>ns,
-					sabsab=>tabsab,
-					ssubab=>tsubab
+					csad_reg => csad_reg
 				);
 
 END ARCHITECTURE; -- arch

@@ -7,9 +7,9 @@ use IEEE.math_real.all;
 
 entity sad_operativo is
 generic(
-B:positive:=8; --n bits por amostra
-N:positive:=64; --n de amostra 
-P:positive:=4--amostras em paralelo por bloco
+B:positive; --n bits por amostra
+N:positive; --n de amostra 
+P:positive--amostras em paralelo por bloco
  
 );
 port(
@@ -34,10 +34,9 @@ architecture sad_arch of sad_operativo is
 	signal si: std_logic_vector(biti downto 0);
 	signal nextSi: std_logic_vector(biti downto 0);
 	--------------------------------------------
-	signal spa0,spa1,spa2,spa3,spb0,spb1,spb2,spb3:std_logic_vector(7 downto 0);
-	signal subab0,subab1,subab2,subab3,
-	absab0,absab1,absab2,absab3
-	:std_logic_vector(B-1 downto 0);
+	signal spa0,spa1,spa2,spa3,spb0,spb1,spb2,spb3:std_logic_vector(B-1 downto 0);
+	signal subab0,subab1,subab2,subab3: std_logic_vector(B downto 0);
+	signal absab0,absab1,absab2,absab3:std_logic_vector(B-1 downto 0);
 	signal nextsum,sum:std_logic_vector(13 downto 0);
 	signal absf:std_logic_vector(9 downto 0);
 	signal azsoma: std_logic;
