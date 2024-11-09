@@ -7,16 +7,16 @@ ENTITY adder IS
 		width : POSITIVE
 	);
 	PORT (
-		value1, value2 : IN std_logic_vector(width - 1 DOWNTO 0);
-		result : OUT std_logic_vector(width - 1 DOWNTO 0);
-		carry_out : OUT std_logic
+		value1, value2 : IN STD_LOGIC_VECTOR(width - 1 DOWNTO 0);
+		result : OUT STD_LOGIC_VECTOR(width - 1 DOWNTO 0);
+		carry_out : OUT STD_LOGIC
 	);
 END adder;
 
 ARCHITECTURE Behavioral OF adder IS
-	SIGNAL auxiliar : std_logic_vector(width DOWNTO 0);
+	SIGNAL auxiliar : STD_LOGIC_VECTOR(width DOWNTO 0);
 BEGIN
-	auxiliar <= std_logic_vector(signed('0' & value1) + signed('0' & value2));
+	auxiliar <= STD_LOGIC_VECTOR(signed('0' & value1) + signed('0' & value2));
 	carry_out <= auxiliar(width);
 	result <= auxiliar(width - 1 DOWNTO 0);
 

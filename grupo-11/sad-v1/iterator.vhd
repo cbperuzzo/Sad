@@ -7,35 +7,38 @@ ENTITY iterator IS
 		width : POSITIVE := 7
 	);
 	PORT (
-		clk, zi, ci : IN std_logic;
-		lesser : OUT std_logic;
-		address : OUT std_logic_vector(width - 2 DOWNTO 0)
+		clk, zi, ci : IN STD_LOGIC;
+		lesser : OUT STD_LOGIC;
+		address : OUT STD_LOGIC_VECTOR(width - 2 DOWNTO 0)
 	);
 END iterator;
 
 ARCHITECTURE Behavioral OF iterator IS
 	-- The signals are named after this pattern: origin_destination or name_origin_destination (for those origin components who have more than one output)
-	SIGNAL mux_reg, reg_adder, concatenator_mux : std_logic_vector(width - 1 DOWNTO 0);
-	SIGNAL carry_adder_concatenator : std_logic;
-	SIGNAL result_adder_concatenator : std_logic_vector(width - 2 DOWNTO 0);
+	SIGNAL mux_reg, reg_adder, concatenator_mux : STD_LOGIC_VECTOR(width - 1 DOWNTO 0);
+	SIGNAL carry_adder_concatenator : STD_LOGIC;
+	SIGNAL result_adder_concatenator : STD_LOGIC_VECTOR(width - 2 DOWNTO 0);
 
 BEGIN
 	mux : ENTITY work.mux2_1
-			GENERIC MAP(width)
+		GENERIC MAP(width)
 		PORT MAP(concatenator_mux, (OTHERS => '0'), zi, mux_reg);
 
-		reg : ENTITY work.reg
-				GENERIC MAP(width)
-			PORT MAP(clk, ci, '0', mux_reg, reg_adder);
+	reg : ENTITY work.reg
+		GENERIC MAP(width)
+		PORT MAP(clk, ci, '0', mux_reg, reg_adder);
 
-			lesser <= NOT reg_adder(width - 1);
-			address <= reg_adder(width - 2 DOWNTO 0);
+	-- Splitter logic and status sign --
+	lesser <= NOT reg_adder(width - 1);
+	address <= reg_adder(width - 2 DOWNTO 0);
+	------------------------------------
 
-			adder : ENTITY work.adder
-					GENERIC MAP(width - 1)
-				PORT MAP(reg_adder(width - 2 DOWNTO 0), ((width - 2 downto 1 => '0') & '1'), result_adder_concatenator, carry_adder_concatenator);
+	adder : ENTITY work.adder
+		GENERIC MAP(width - 1)
+		PORT MAP(reg_adder(width - 2 DOWNTO 0), ((width - 2 DOWNTO 1 => '0') & '1'), result_adder_concatenator, carry_adder_concatenator);
 
-				-- Concatenator logic
-				concatenator_mux <= carry_adder_concatenator & result_adder_concatenator;
-
+	-- Concatenator logic --
+	concatenator_mux <= carry_adder_concatenator & result_adder_concatenator;
+	------------------------
+	
 END Behavioral;

@@ -6,11 +6,9 @@ ENTITY reg IS
 		width : POSITIVE
 	);
 	PORT (
-		clk : IN std_logic;
-		enable : IN std_logic;
-		reset : IN std_logic;
-		next_value : IN std_logic_vector(width - 1 DOWNTO 0);
-		current_value : OUT std_logic_vector(width - 1 DOWNTO 0)
+		clk, enable, reset : IN STD_LOGIC;
+		next_value : IN STD_LOGIC_VECTOR(width - 1 DOWNTO 0);
+		current_value : OUT STD_LOGIC_VECTOR(width - 1 DOWNTO 0)
 	);
 END reg;
 

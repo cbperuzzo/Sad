@@ -1,25 +1,25 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
-USE numeric_std.ALL;
+USE ieee.numeric_std.ALL;
 
-ENTITY subtractor is
-generic(
-    width: POSITIVE
-);
-port(
-    -- The inputs are absolute numbers typed as std_logic_vector. 
-    -- The output is a std_logic_vector that represents a two's complement number
-    -- Note: the output is a bit larger
+ENTITY subtractor IS
+	GENERIC (
+		width : POSITIVE
+	);
+	PORT (
+		-- The inputs are absolute numbers typed as std_logic_vector.
+		-- The output is a std_logic_vector that represents a two's complement number
+		-- Note: the output is a bit larger
 
-    value1, value2: in std_logic_vector(width - 1 downto 0);
-    result: out std_logic_vector(width downto 0)
-);
-end subtractor;
+		value1, value2 : IN STD_LOGIC_VECTOR(width - 1 DOWNTO 0);
+		result : OUT STD_LOGIC_VECTOR(width DOWNTO 0)
+	);
+END subtractor;
 
-architecture Behavioral of subtractor is
-    
-begin
-    -- 0's are concatenated to both values so then they can represent positive numbers in two's complement
-    result <= std_logic_vector(signed('0'&value1) - signed('0'&value2));
+ARCHITECTURE Behavioral OF subtractor IS
 
-end Behavioral;
+BEGIN
+	-- 0's are concatenated to both values so then they can represent positive numbers in two's complement
+	result <= STD_LOGIC_VECTOR(signed('0' & value1) - signed('0' & value2));
+
+END Behavioral;
