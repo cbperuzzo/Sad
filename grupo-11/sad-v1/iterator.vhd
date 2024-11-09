@@ -1,15 +1,15 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
-USE numeric_std.ALL;
+USE ieee.numeric_std.ALL;
 
 ENTITY iterator IS
 	GENERIC (
-		width : POSITIVE
+		width : POSITIVE := 7
 	);
 	PORT (
 		clk, zi, ci : IN std_logic;
 		lesser : OUT std_logic;
-		address : std_logic_vector(width - 2 DOWNTO 0)
+		address : OUT std_logic_vector(width - 2 DOWNTO 0)
 	);
 END iterator;
 
@@ -32,8 +32,8 @@ BEGIN
 			address <= reg_adder(width - 2 DOWNTO 0);
 
 			adder : ENTITY work.adder
-					GENERIC MAP(width)
-				PORT MAP(reg_adder(width - 2 DOWNTO 0), (OTHERS => '1'), result_adder_concatenator, carry_adder_concatenator);
+					GENERIC MAP(width - 1)
+				PORT MAP(reg_adder(width - 2 DOWNTO 0), ((width - 2 downto 1 => '0') & '1'), result_adder_concatenator, carry_adder_concatenator);
 
 				-- Concatenator logic
 				concatenator_mux <= carry_adder_concatenator & result_adder_concatenator;

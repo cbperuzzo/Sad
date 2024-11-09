@@ -1,6 +1,6 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
-USE numeric_std.ALL;
+USE ieee.numeric_std.ALL;
 
 ENTITY adder IS
 	GENERIC (

@@ -18,4 +18,4 @@ ARCHITECTURE Behavioral OF mux2_1 IS
 BEGIN
 	Y <= D0 WHEN sel = '0' ELSE
 	     D1;
-END Behavorial;
+END Behavioral;
