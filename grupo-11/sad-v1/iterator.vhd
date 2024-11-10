@@ -4,11 +4,11 @@ USE ieee.numeric_std.ALL;
 
 ENTITY iterator IS
 	GENERIC (
-		width : POSITIVE := 7
+		width : POSITIVE
 	);
 	PORT (
 		clk, zi, ci : IN STD_LOGIC;
-		lesser : OUT STD_LOGIC;
+		less : OUT STD_LOGIC;
 		address : OUT STD_LOGIC_VECTOR(width - 2 DOWNTO 0)
 	);
 END iterator;
@@ -29,7 +29,7 @@ BEGIN
 		PORT MAP(clk, ci, '0', mux_reg, reg_adder);
 
 	-- Splitter logic and status sign --
-	lesser <= NOT reg_adder(width - 1);
+	less <= NOT reg_adder(width - 1);
 	address <= reg_adder(width - 2 DOWNTO 0);
 	------------------------------------
 

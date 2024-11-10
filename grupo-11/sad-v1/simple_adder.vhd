@@ -14,6 +14,6 @@ END simple_adder;
 
 ARCHITECTURE Behavioral OF simple_adder IS
 BEGIN
-	result <= STD_LOGIC_VECTOR(signed(value1) + signed(value2));
+	result <= STD_LOGIC_VECTOR(unsigned(value1) + unsigned(value2));
 
 END Behavioral;
