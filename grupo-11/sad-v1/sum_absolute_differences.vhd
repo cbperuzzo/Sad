@@ -2,7 +2,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 
-ENTITY adder_tree IS
+ENTITY sum_absolute_differences IS
 	GENERIC (
 		sample_width : POSITIVE;
 		output_width : POSITIVE
@@ -12,9 +12,9 @@ ENTITY adder_tree IS
 		clk, cpA, cpB, zsum, csum, csad_reg : IN STD_LOGIC;
 		sad_value : OUT STD_LOGIC_VECTOR(output_width - 1 DOWNTO 0)
 	);
-END adder_tree;
+END sum_absolute_differences;
 
-ARCHITECTURE Behavioral OF adder_tree IS
+ARCHITECTURE Behavioral OF sum_absolute_differences IS
 	-- Signal names follow this pattern: originDestination where origin is the component of origin and Destination is the component of destination of the signal
 	SIGNAL pA_regSubtractor, pB_regSubtractor, absoluteConcatenator : STD_LOGIC_VECTOR(sample_width - 1 DOWNTO 0);
 	SIGNAL subtractorAbsolute : STD_LOGIC_VECTOR(sample_width DOWNTO 0);
