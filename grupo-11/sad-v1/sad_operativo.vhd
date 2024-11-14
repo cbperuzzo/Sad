@@ -23,7 +23,7 @@ BEGIN
 		GENERIC MAP(iterator_width)
 		PORT MAP(clk, zi, ci, less, address);
 
-	adder_tree : ENTITY work.adder_tree
+	sum_absolute_differences : ENTITY work.sum_absolute_differences
 		GENERIC MAP(sample_width, output_width)
 		PORT MAP(sample_ori, sample_can, clk, cpA, cpB, zsum, csum, csad_reg, sad_value);
 
