@@ -12,7 +12,7 @@ ENTITY sad IS
 		-- se você desejar, pode usar os valores abaixo para descrever uma
 		-- entidade que funcione tanto para a SAD v1 quanto para a SAD v3.
 		N : POSITIVE := 64; -- número de amostras por bloco
-		P : POSITIVE := 1 -- número de amostras de cada bloco lidas em paralelo
+		P : POSITIVE := 4 -- número de amostras de cada bloco lidas em paralelo
 		-----------------------------------------------------------------------
 	);
 	PORT (
@@ -29,7 +29,7 @@ ENTITY sad IS
 		sample_ori : IN STD_LOGIC_VECTOR (B*P - 1 DOWNTO 0); -- Mem_A[end]
 		sample_can : IN STD_LOGIC_VECTOR (B*P - 1 DOWNTO 0); -- Mem_B[end]
 		read_mem : OUT STD_LOGIC; -- read
-		address : OUT STD_LOGIC_VECTOR (integer(ceil(log2(real(N)))) - 1 DOWNTO 0); -- end
+		address : OUT STD_LOGIC_VECTOR (integer(ceil(log2(real(N)/real(P)))) - 1 DOWNTO 0); -- end
 		sad_value : OUT STD_LOGIC_VECTOR (integer(ceil(log2((exp(real(B) * log(real(2))) - real(1)) * real(N)))) - 1 DOWNTO 0); -- SAD
 		done : OUT STD_LOGIC -- pronto
 	);
