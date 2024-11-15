@@ -4,7 +4,7 @@ USE ieee.std_logic_1164.ALL;
 ENTITY sad_operativo IS
 	GENERIC (
 		-- To simplify the code, some generic names are abbreviated
-		FSW : POSITIVE; -- full_sample_width = B*P
+		FSW : POSITIVE; -- full_sample_width := B*P
 		B : POSITIVE; -- bits_per_sample
 		P : POSITIVE; -- number_parallel_differences
 		output_width : POSITIVE;
