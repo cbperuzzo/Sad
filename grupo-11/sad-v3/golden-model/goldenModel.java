@@ -3,7 +3,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
-public class gm {
+public class goldenModel {
 
     //8 bits por amostra
     //64 amostras
@@ -13,7 +13,7 @@ public class gm {
 
         Random random = new Random();
 
-        File outputfile = new File("values.dat");
+        File outputfile = new File("estimulos.dat");
 
         FileWriter fileWriter = new FileWriter(outputfile);
 

@@ -6,7 +6,7 @@ ENTITY sad_controle IS
 		enable, reset, clk : IN STD_LOGIC;
 		less : IN STD_LOGIC;
 		done, read_mem : OUT STD_LOGIC;
-		zi, ci, cpA, cpB, zsum, csum, csad_reg : OUT STD_LOGIC
+		zi, ci, cpAcpB, zsum, csum, csad_reg : OUT STD_LOGIC
 	);
 END sad_controle;
 
@@ -37,8 +37,7 @@ BEGIN
 				done <= '1';
 				read_mem <= '0';
 
-				cpA <= '0';
-				cpB <= '0';
+				cpAcpB <= '0';
 
 				csad_reg <= '0';
 				IF enable = '1' THEN
@@ -61,8 +60,7 @@ BEGIN
 				done <= '0';
 				read_mem <= '0';
 
-				cpA <= '0';
-				cpB <= '0';
+				cpAcpB <= '0';
 
 				csad_reg <= '0';
 
@@ -81,8 +79,7 @@ BEGIN
 				done <= '0';
 				read_mem <= '0';
 
-				cpA <= '0';
-				cpB <= '0';
+				cpAcpB <= '0';
 
 				csad_reg <= '0';
 
@@ -103,8 +100,7 @@ BEGIN
 				done <= '0';
 				read_mem <= '1';
 
-				cpA <= '1';
-				cpB <= '1';
+				cpAcpB <= '1';
 
 				csad_reg <= '0';
 
@@ -122,8 +118,7 @@ BEGIN
 				done <= '0';
 				read_mem <= '0';
 
-				cpA <= '0';
-				cpB <= '0';
+				cpAcpB <= '0';
 
 				csad_reg <= '0';
 
@@ -140,8 +135,7 @@ BEGIN
 				done <= '0';
 				read_mem <= '0';
 
-				cpA <= '0';
-				cpB <= '0';
+				cpAcpB <= '0';
 
 				csad_reg <= '1';
 
