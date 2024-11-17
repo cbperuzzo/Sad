@@ -1,40 +1,35 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+USE ieee.math_real.ALL;
 
 ENTITY sad_operativo IS
 	GENERIC (
-		-- To simplify the code, some generic names are abbreviated
-		FSW : POSITIVE; -- full_sample_width := B*P
 		B : POSITIVE; -- bits_per_sample
 		P : POSITIVE; -- number_parallel_differences
 		output_width : POSITIVE;
-		iterator_width : POSITIVE
+		counter_width : POSITIVE
 	);
 	PORT (
 		clk, zi, ci, cpAcpB, zsum, csum, csad_reg : IN STD_LOGIC;
-		sample_ori, sample_can : IN STD_LOGIC_VECTOR(FSW - 1 DOWNTO 0);
+		sample_ori, sample_can : IN STD_LOGIC_VECTOR(B*P - 1 DOWNTO 0);
 		less : OUT STD_LOGIC;
 		sad_value : OUT STD_LOGIC_VECTOR(output_width - 1 DOWNTO 0);
-		address : OUT STD_LOGIC_VECTOR(iterator_width - 2 DOWNTO 0)
+		address : OUT STD_LOGIC_VECTOR(counter_width - 2 DOWNTO 0)
 	);
 END sad_operativo;
 
 ARCHITECTURE Behavioral OF sad_operativo IS
+	CONSTANT FSW : POSITIVE := B * P; -- full_sample_width
 	SIGNAL pApB_regOut : STD_LOGIC_VECTOR(2 * FSW - 1 DOWNTO 0);
 	SIGNAL subtractorsOut : STD_LOGIC_VECTOR((B + 1) * P - 1 DOWNTO 0);
 	SIGNAL absolutesOut : STD_LOGIC_VECTOR(FSW - 1 DOWNTO 0);
+	SIGNAL adder_treeOut: STD_LOGIC_VECTOR((B + INTEGER(log2(real(P)))) - 1 DOWNTO 0);
 	---------------------------------------------------------------------
-	-- Signals for P := 4
-	SIGNAL carry_out_1 : STD_LOGIC_VECTOR(1 DOWNTO 0);
-	SIGNAL adders_result_1 : STD_LOGIC_VECTOR(B * 2 - 1 DOWNTO 0);
-	SIGNAL carry_out_2 : STD_LOGIC;
-	SIGNAL adders_result_2 : STD_LOGIC_VECTOR((B + 1) - 1 DOWNTO 0);
-	---------------------------------------------------------------------
-	SIGNAL concatenatorAdder, adderMux, muxSum_reg, sum_regAdder, sum_regSad_reg : STD_LOGIC_VECTOR(output_width - 1 DOWNTO 0);
+	SIGNAL adderIn1, adderIn2, adderOut, muxOut, sum_regOut : STD_LOGIC_VECTOR(output_width - 1 DOWNTO 0);
 BEGIN
 	---------------------------------------------------------------------
-	iterator : ENTITY work.iterator
-		GENERIC MAP(iterator_width)
+	counter : ENTITY work.counter
+		GENERIC MAP(counter_width)
 		PORT MAP(clk, zi, ci, less, address);
 	---------------------------------------------------------------------
 	pApB_reg : ENTITY work.reg
@@ -60,50 +55,30 @@ BEGIN
 
 	END GENERATE absolute_differences;
 	---------------------------------------------------------------------
-	-- Adder Tree implemented for P := 4
-	adder_tree_4 : FOR i IN 0 TO 1 GENERATE
-
-		adder1 : ENTITY work.adder
-			GENERIC MAP(B)
-			PORT MAP(
-				absolutesOut((FSW - 1 - B * 2 * i) DOWNTO (FSW - B * (2 * i + 1))),
-				absolutesOut((FSW - 1 - B * (2 * i + 1)) DOWNTO (FSW - B * (2 * i + 2))),
-				adders_result_1(B * 2 - 1 - B * i DOWNTO B - B * i),
-				carry_out_1(1 - i)
-			);
-
-	END GENERATE adder_tree_4;
-
-	adder2 : ENTITY work.adder
-		GENERIC MAP(B + 1)
-		PORT MAP(
-			carry_out_1(1) & adders_result_1(B * 2 - 1 DOWNTO B),
-			carry_out_1(0) & adders_result_1(B - 1 DOWNTO 0),
-			adders_result_2,
-			carry_out_2
-		);
+	adder_tree: entity work.adder_tree
+	generic map(B, P)
+	port map(absolutesOut, adder_treeOut);
 	---------------------------------------------------------------------
-	-- Implement generic adder_tree => :(
+	-- Concatenator logic
+	adderIn2 <= (output_width - adder_treeOut'length - 1 DOWNTO 0 => '0') & adder_treeOut;
 	---------------------------------------------------------------------
-	concatenatorAdder <= (output_width - (B + 2) - 1 DOWNTO 0 => '0') & carry_out_2 & adders_result_2;
-	---------------------------------------------------------------------
-	adder3 : ENTITY work.simple_adder
+	adder : ENTITY work.simple_adder
 		GENERIC MAP(output_width)
-		PORT MAP(sum_regAdder, concatenatorAdder, adderMux);
+		PORT MAP(adderIn1, adderIn2, adderOut);
 
 	mux : ENTITY work.mux2_1
 		GENERIC MAP(output_width)
-		PORT MAP(adderMux, (OTHERS => '0'), zsum, muxSum_reg);
+		PORT MAP(adderOut, (OTHERS => '0'), zsum, muxOut);
 
 	sum_reg : ENTITY work.reg
 		GENERIC MAP(output_width)
-		PORT MAP(clk, csum, '0', muxSum_reg, sum_regSad_reg);
+		PORT MAP(clk, csum, '0', muxOut, sum_regOut);
 
 	-- Sum result returns to adder (output signal of sum_reg is copied) --
-	sum_regAdder <= sum_regSad_reg;
-
+	adderIn1 <= sum_regOut;
+	---------------------------------------------------------------------
 	sad_reg : ENTITY work.reg
 		GENERIC MAP(output_width)
-		PORT MAP(clk, csad_reg, '0', sum_regSad_reg, sad_value);
+		PORT MAP(clk, csad_reg, '0', sum_regOut, sad_value);
 	---------------------------------------------------------------------
 END Behavioral;
