@@ -27,10 +27,10 @@ BEGIN
 		GENERIC MAP(width)
 		PORT MAP(clk, ci, '0', muxOut, regOut);
 
-	-- Splitter logic and status sign --
+	-- Splitter logic and status signals --
 	less <= NOT regOut(width - 1);
 	address <= regOut(width - 2 DOWNTO 0);
-	------------------------------------
+	---------------------------------------
 
 	adder : ENTITY work.adder
 		GENERIC MAP(width - 1)
