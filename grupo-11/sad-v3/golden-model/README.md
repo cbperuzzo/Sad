@@ -1,25 +1,24 @@
+## instruções para gerar o arquivo estimulos.dat, utilizado pelo testbench do sadv3
 
-**joão depois se possível deixar isso aqui bem bonitinho, e ve se tu consegue rodar esse goldem model no teu pc usando essas intruções**
+1. abra o terminal e navegue até a pasta **/golden-model**  utilizando o comando **cd**.
 
-instruções para gerar o arquivo values.dat, utilizado pelo testbench do sadv3
+2. digite os seguintes comandos, na ordem em que aparecem.
 
-1 - verifique se o arquivo gm.java está na pasta raiz do projeto
+	> javac goldenModel.java
+	> java goldenModel
 
-2 - abra o terminal e navegue até a pasta raiz do projeto utilizando o commando cd
+3. após executar os comandos, o arquivo **estimulos.dat** é gerado na raiz do projeto, e a testbench está pronta para ser iniciada.
 
-3 - digitar os seguintes comandos, na ordem em que aparecem
+---
 
-	javac gm.java
-	java gm
+####  observações adicionais:
 
-4 - após executar os comandos, o arquivo "values.dat" é gerado e os testes podem ser realizados
+- caso deseje gerar novos valores para **estimulos.dat** basta executar o seguinte comando novamente.
 
-obs 1, caso deseje gerar novos valores para values.dat basta executar o seguinte comando novamente
-	
-	java gm
+	> java goldenModel
 
-obs 2, é nescessário ter uma instalação do jdk (java development kit) no seu sistema para executar este gerador
+- é necessário ter uma instalação do jdk (java development kit) no seu sistema para executar este gerador.
 
-obs 3, caso não seja possível a geração automatica do arquivo .dat, uma versão pré pronta está disponivel na pasta values pronto,
-neste caso e so mover o arquivo .dat para a raiz do projeto e iniciar a testbench
+- caso não seja possível a geração automática do arquivo *.dat*, uma versão pré pronta está disponível na pasta **/golden-model** , neste caso é só mover o arquivo *.dat* para a raiz do projeto e iniciar a testbench.
+
 

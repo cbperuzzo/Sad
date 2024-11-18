@@ -13,7 +13,7 @@ public class goldenModel {
 
         Random random = new Random();
 
-        File outputfile = new File("estimulos.dat");
+        File outputfile = new File("../estimulos.dat");
 
         FileWriter fileWriter = new FileWriter(outputfile);
 
