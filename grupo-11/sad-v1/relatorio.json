@@ -1,0 +1,25 @@
+{
+    "grupo": {
+    "nome": "grupo 11",
+    "alunos": [
+    {"nome": "caetano peruzzo", "matricula": "24102642"},
+    {"nome":"joão pedro de oliveira anders","matricula":"24100597"}]
+    },
+    "quartus": {
+    "os": "Windows 11",
+    "versao": "13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition",
+    "fpga": {
+    "familia": "Cyclone III",
+    "dispositivo": "EP3C5E144C7"
+    }
+    },
+    "utilizacao": {
+    "total combinational functions": 44,
+    "dedicated logic registers": 57,
+    "total pins": 41
+    },
+    "atraso": {
+    "Fmax": 162.65,
+    "unidade": "MHz"
+    }
+}
