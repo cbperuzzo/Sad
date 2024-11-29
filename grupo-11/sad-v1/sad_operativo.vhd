@@ -1,81 +1,84 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
-USE ieee.numeric_std.ALL;
-USE IEEE.math_real.ALL;
+USE ieee.math_real.ALL;
+
 ENTITY sad_operativo IS
 	GENERIC (
-		B : POSITIVE; --n bits por amostra
-		N : POSITIVE; --n de amostra
-		P : POSITIVE --amostras em paralelo por bloco
-
+		B : POSITIVE; -- bits_per_sample
+		P : POSITIVE; -- number_parallel_differences
+		output_width : POSITIVE;
+		counter_width : POSITIVE
 	);
 	PORT (
-		clk : IN std_logic;
-		ma, mb : IN std_logic_vector(B - 1 DOWNTO 0);
-		menor : OUT std_logic;
-		ssad : OUT std_logic_vector(13 DOWNTO 0);
-		ende : OUT std_logic_vector(INTEGER(ceil(log2(real(N)/real(P)))) - 1 DOWNTO 0);
-		zi, ci, cpa, cpb, zsoma, csoma, csad_reg : IN std_logic;
-		--zi e zsoma sao "resets" dos registradores, e serao invertidos
-		s,ns : out std_logic_vector(13 downto 0);
-		ssubab: out std_logic_vector(8 downto 0);
-		sabsab: out std_logic_vector(13 downto 0)
- 
+		clk, zi, ci, cpAcpB, zsum, csum, csad_reg : IN STD_LOGIC;
+		sample_ori, sample_can : IN STD_LOGIC_VECTOR(B*P - 1 DOWNTO 0);
+		less : OUT STD_LOGIC;
+		sad_value : OUT STD_LOGIC_VECTOR(output_width - 1 DOWNTO 0);
+		address : OUT STD_LOGIC_VECTOR(counter_width - 2 DOWNTO 0)
 	);
- 
 END sad_operativo;
-ARCHITECTURE sad_arch OF sad_operativo IS
-	CONSTANT biti : INTEGER := INTEGER(ceil(log2(real(N)/real(P))));
-	SIGNAL azi : std_logic;
-	SIGNAL si : std_logic_vector(biti DOWNTO 0);
-	SIGNAL nextSi : std_logic_vector(biti DOWNTO 0);
-	--------------------------------------------
-	SIGNAL spa, spb, preabsab : std_logic_vector(7 DOWNTO 0);
-	signal subab : std_logic_vector(8 downto 0);
-	SIGNAL nextsum, sum, absab : std_logic_vector(13 DOWNTO 0);
-	SIGNAL azsoma : std_logic;
- 
+
+ARCHITECTURE Behavioral OF sad_operativo IS
+	CONSTANT FSW : POSITIVE := B * P; -- full_sample_width
+	SIGNAL pApB_regOut : STD_LOGIC_VECTOR(2 * FSW - 1 DOWNTO 0);
+	SIGNAL subtractorsOut : STD_LOGIC_VECTOR((B + 1) * P - 1 DOWNTO 0);
+	SIGNAL absolutesOut : STD_LOGIC_VECTOR(FSW - 1 DOWNTO 0);
+	SIGNAL adder_treeOut: STD_LOGIC_VECTOR((B + INTEGER(log2(real(P)))) - 1 DOWNTO 0);
+	---------------------------------------------------------------------
+	SIGNAL adderIn1, adderIn2, adderOut, muxOut, sum_regOut : STD_LOGIC_VECTOR(output_width - 1 DOWNTO 0);
 BEGIN
-	sabsab<=absab;
-	ssubab<=subab;
-	azi <= NOT zi;
-	reg_i : ENTITY work.reg_g
-			GENERIC MAP(7)
-		PORT MAP(nextSi, si, ci, azi, clk);
-		ende <= si(5 DOWNTO 0);
-		menor <= NOT si(6);
-		nextSi <= std_logic_vector(unsigned('0' & si(5 DOWNTO 0)) + 1);
-		----------------------------------------------------------
- 		
-		ns<=nextsum;
-		s<=sum;
-		
-		pa : ENTITY work.reg_g
-				GENERIC MAP(8)
-			PORT MAP(ma, spa, cpa, '1', clk);
+	---------------------------------------------------------------------
+	counter : ENTITY work.counter
+		GENERIC MAP(counter_width)
+		PORT MAP(clk, zi, ci, less, address);
+	---------------------------------------------------------------------
+	pApB_reg : ENTITY work.reg
+		GENERIC MAP(2 * FSW)
+		PORT MAP(clk, cpAcpB, '0', sample_ori & sample_can, pApB_regOut);
 
-			pb : ENTITY work.reg_g
-					GENERIC MAP(8)
-				PORT MAP(mb, spb, cpb, '1', clk);
+	absolute_differences : FOR i IN 0 TO (P - 1) GENERATE
 
-				dif : ENTITY work.pdif
-						GENERIC MAP(8)
-					PORT MAP(spa, spb, subab);
+		subtractor : ENTITY work.subtractor
+			GENERIC MAP(B)
+			PORT MAP(
+				pApB_regOut((2 * FSW - 1 - B * i) DOWNTO (2 * FSW - B * (i + 1))),
+				pApB_regOut((FSW - 1 - B * i) DOWNTO (FSW - B * (i + 1))),
+				subtractorsOut((B + 1) * P - 1 - (B + 1) * i DOWNTO (B + 1) * P - (B + 1) * (i + 1))
+			);
 
-					abss : ENTITY work.absolutev2
-							GENERIC MAP(8)
-						PORT MAP(subab, preabsab);
-						absab <= "000000" & preabsab;
+		absolute : ENTITY work.absolute
+			GENERIC MAP(B + 1)
+			PORT MAP(
+				subtractorsOut((B + 1) * P - 1 - (B + 1) * i DOWNTO (B + 1) * P - (B + 1) * (i + 1)),
+				absolutesOut((FSW - 1 - B * i) DOWNTO (FSW - B * (i + 1)))
+			);
 
-						azsoma <= NOT zsoma;
- 
-						reg_sum : ENTITY work.reg_g
-								GENERIC MAP(14)
-							PORT MAP(nextsum, sum, csoma, azsoma, clk);
-							nextsum <= std_logic_vector(unsigned(sum) + unsigned(absab));
- 
-							reg_sad : ENTITY work.reg_g
-									GENERIC MAP(14)
-								PORT MAP(sum, ssad, csad_reg, '1', clk);
- 
-END sad_arch;
+	END GENERATE absolute_differences;
+	---------------------------------------------------------------------
+	adder_tree: entity work.adder_tree
+	generic map(B, P)
+	port map(absolutesOut, adder_treeOut);
+	---------------------------------------------------------------------
+	-- Concatenator logic
+	adderIn2 <= (output_width - adder_treeOut'length - 1 DOWNTO 0 => '0') & adder_treeOut;
+	---------------------------------------------------------------------
+	adder : ENTITY work.simple_adder
+		GENERIC MAP(output_width)
+		PORT MAP(adderIn1, adderIn2, adderOut);
+
+	mux : ENTITY work.mux2_1
+		GENERIC MAP(output_width)
+		PORT MAP(adderOut, (OTHERS => '0'), zsum, muxOut);
+
+	sum_reg : ENTITY work.reg
+		GENERIC MAP(output_width)
+		PORT MAP(clk, csum, '0', muxOut, sum_regOut);
+
+	-- Sum result returns to adder (output signal of sum_reg is copied) --
+	adderIn1 <= sum_regOut;
+	---------------------------------------------------------------------
+	sad_reg : ENTITY work.reg
+		GENERIC MAP(output_width)
+		PORT MAP(clk, csad_reg, '0', sum_regOut, sad_value);
+	---------------------------------------------------------------------
+END Behavioral;

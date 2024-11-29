@@ -14,12 +14,12 @@
     }
     },
     "utilizacao": {
-    "total combinational functions": 53,
+    "total combinational functions": 44,
     "dedicated logic registers": 57,
     "total pins": 41
     },
     "atraso": {
-    "Fmax": 166.69,
+    "Fmax": 162.65,
     "unidade": "MHz"
     }
 }

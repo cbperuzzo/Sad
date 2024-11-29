@@ -1,4 +1,0 @@
-force /enable 1 0ns,0 50ns
-force /clk 0 0ns,1 30ns -r 60ns 
-force /sample_ori 00000000000000000000000000000011 0ns
-force /sample_can 00000000000000000000000000000010 0ns

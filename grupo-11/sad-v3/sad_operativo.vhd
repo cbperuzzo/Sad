@@ -1,131 +1,84 @@
-library ieee;
-use ieee.std_logic_1164.all;
-USE ieee.numeric_std.ALL;
-use IEEE.math_real.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.math_real.ALL;
 
---1.0
+ENTITY sad_operativo IS
+	GENERIC (
+		B : POSITIVE; -- bits_per_sample
+		P : POSITIVE; -- number_parallel_differences
+		output_width : POSITIVE;
+		counter_width : POSITIVE
+	);
+	PORT (
+		clk, zi, ci, cpAcpB, zsum, csum, csad_reg : IN STD_LOGIC;
+		sample_ori, sample_can : IN STD_LOGIC_VECTOR(B*P - 1 DOWNTO 0);
+		less : OUT STD_LOGIC;
+		sad_value : OUT STD_LOGIC_VECTOR(output_width - 1 DOWNTO 0);
+		address : OUT STD_LOGIC_VECTOR(counter_width - 2 DOWNTO 0)
+	);
+END sad_operativo;
 
-entity sad_operativo is
-generic(
-B:positive; --n bits por amostra
-N:positive; --n de amostra 
-P:positive--amostras em paralelo por bloco
- 
-);
-port(
-	clk :in std_logic;
-	--ma0,ma1,ma2,ma3,mb0,mb1,mb2,mb3 :in std_logic_vector(7 downto 0);
-	ma : in std_logic_vector((P*b)-1 downto 0);
-	mb : in std_logic_vector((P*b)-1 downto 0);
-	menor :out std_logic;
-	ssad :out std_logic_vector(13 downto 0);
-	ende :out std_logic_vector( integer(ceil(log2(real(N)/real(P))))-1 downto 0);
-	zi,ci,papb,zsoma,csoma,csad_reg :in std_logic
-	--zi e zsoma sao "resets" dos registradores, e serao invertidos 
+ARCHITECTURE Behavioral OF sad_operativo IS
+	CONSTANT FSW : POSITIVE := B * P; -- full_sample_width
+	SIGNAL pApB_regOut : STD_LOGIC_VECTOR(2 * FSW - 1 DOWNTO 0);
+	SIGNAL subtractorsOut : STD_LOGIC_VECTOR((B + 1) * P - 1 DOWNTO 0);
+	SIGNAL absolutesOut : STD_LOGIC_VECTOR(FSW - 1 DOWNTO 0);
+	SIGNAL adder_treeOut: STD_LOGIC_VECTOR((B + INTEGER(log2(real(P)))) - 1 DOWNTO 0);
+	---------------------------------------------------------------------
+	SIGNAL adderIn1, adderIn2, adderOut, muxOut, sum_regOut : STD_LOGIC_VECTOR(output_width - 1 DOWNTO 0);
+BEGIN
+	---------------------------------------------------------------------
+	counter : ENTITY work.counter
+		GENERIC MAP(counter_width)
+		PORT MAP(clk, zi, ci, less, address);
+	---------------------------------------------------------------------
+	pApB_reg : ENTITY work.reg
+		GENERIC MAP(2 * FSW)
+		PORT MAP(clk, cpAcpB, '0', sample_ori & sample_can, pApB_regOut);
 
-);	
-    
-end sad_operativo;
+	absolute_differences : FOR i IN 0 TO (P - 1) GENERATE
 
+		subtractor : ENTITY work.subtractor
+			GENERIC MAP(B)
+			PORT MAP(
+				pApB_regOut((2 * FSW - 1 - B * i) DOWNTO (2 * FSW - B * (i + 1))),
+				pApB_regOut((FSW - 1 - B * i) DOWNTO (FSW - B * (i + 1))),
+				subtractorsOut((B + 1) * P - 1 - (B + 1) * i DOWNTO (B + 1) * P - (B + 1) * (i + 1))
+			);
 
-architecture sad_arch of sad_operativo is 
-	constant biti: Integer := integer(ceil(log2(real(N)/real(P))));
-	signal azi : std_logic;
-	signal si: std_logic_vector(biti downto 0);
-	signal nextSi: std_logic_vector(biti downto 0);
-	--------------------------------------------
-	signal spa0,spa1,spa2,spa3,spb0,spb1,spb2,spb3:std_logic_vector(B-1 downto 0);
-	signal subab0,subab1,subab2,subab3: std_logic_vector(B downto 0);
-	signal absab0,absab1,absab2,absab3:std_logic_vector(B-1 downto 0);
-	signal nextsum,sum:std_logic_vector(13 downto 0);
-	signal absf:std_logic_vector(9 downto 0);
-	signal azsoma: std_logic;
-	
-begin
+		absolute : ENTITY work.absolute
+			GENERIC MAP(B + 1)
+			PORT MAP(
+				subtractorsOut((B + 1) * P - 1 - (B + 1) * i DOWNTO (B + 1) * P - (B + 1) * (i + 1)),
+				absolutesOut((FSW - 1 - B * i) DOWNTO (FSW - B * (i + 1)))
+			);
 
-	azi<=not zi;
-	reg_i: entity work.reg_g
-		generic map(5)
-		port map(nextSi,si,ci,azi,clk);
-	ende<=si(3 downto 0);
-	menor<= not si(4);
-	nextSi<=std_logic_vector(unsigned('0'&si(3 downto 0)) + 1);
-	----------------------------------------------------------
-	
+	END GENERATE absolute_differences;
+	---------------------------------------------------------------------
+	adder_tree: entity work.adder_tree
+	generic map(B, P)
+	port map(absolutesOut, adder_treeOut);
+	---------------------------------------------------------------------
+	-- Concatenator logic
+	adderIn2 <= (output_width - adder_treeOut'length - 1 DOWNTO 0 => '0') & adder_treeOut;
+	---------------------------------------------------------------------
+	adder : ENTITY work.simple_adder
+		GENERIC MAP(output_width)
+		PORT MAP(adderIn1, adderIn2, adderOut);
 
-	pa0: entity work.reg_g
-		generic map(8)
-		port map(ma(31 downto 24),spa0,papb,'1',clk);
-	pa1: entity work.reg_g
-		generic map(8)
-		port map(ma(23 downto 16),spa1,papb,'1',clk);
-	pa2: entity work.reg_g
-		generic map(8)
-		port map(ma(15 downto 8),spa2,papb,'1',clk);
-	pa3: entity work.reg_g
-		generic map(8)
-		port map(ma(7 downto 0),spa3,papb,'1',clk);
+	mux : ENTITY work.mux2_1
+		GENERIC MAP(output_width)
+		PORT MAP(adderOut, (OTHERS => '0'), zsum, muxOut);
 
+	sum_reg : ENTITY work.reg
+		GENERIC MAP(output_width)
+		PORT MAP(clk, csum, '0', muxOut, sum_regOut);
 
-	pb0: entity work.reg_g
-		generic map(8)
-		port map(mb(31 downto 24),spb0,papb,'1',clk);
-	pb1: entity work.reg_g
-		generic map(8)
-		port map(mb(23 downto 16),spb1,papb,'1',clk);
-	pb2: entity work.reg_g
-		generic map(8)
-		port map(mb(15 downto 8),spb2,papb,'1',clk);
-	pb3: entity work.reg_g
-		generic map(8)
-		port map(mb(7 downto 0),spb3,papb,'1',clk);
-
-	dif0: entity work.pdif
-		generic map(8)
-		port map(spa0,spb0,subab0);
-	dif1: entity work.pdif
-		generic map(8)
-		port map(spa1,spb1,subab1);
-	dif2: entity work.pdif
-		generic map(8)
-		port map(spa2,spb2,subab2);
-	dif3: entity work.pdif
-		generic map(8)
-		port map(spa3,spb3,subab3);
-
-	abss0: entity work.absolute
-		generic map(8)
-		port map(subab0,absab0);
-	
-
-	abss1: entity work.absolute
-		generic map(8)
-		port map(subab1,absab1);
-	
-
-	abss2: entity work.absolute
-		generic map(8)
-		port map(subab2,absab2);
-	
-
-	abss3: entity work.absolute
-		generic map(8)
-		port map(subab3,absab3);
-	
-	at: entity work.adderTree4
-		generic map(8)
-		port map(absab0,absab1,absab2,absab3,absf);
-	
-	azsoma<= not zsoma;
-	
-	reg_sum: entity work.reg_g
-		generic map(14)
-		port map(nextsum,sum,csoma,azsoma,clk);
-	nextsum<=std_logic_vector(signed(sum)+signed("0000"&absf));
-	
-	reg_sad:entity work.reg_g
-		generic map(14)
-		port map(sum,ssad,csad_reg,'1',clk);
-	
-
-end sad_arch;
+	-- Sum result returns to adder (output signal of sum_reg is copied) --
+	adderIn1 <= sum_regOut;
+	---------------------------------------------------------------------
+	sad_reg : ENTITY work.reg
+		GENERIC MAP(output_width)
+		PORT MAP(clk, csad_reg, '0', sum_regOut, sad_value);
+	---------------------------------------------------------------------
+END Behavioral;

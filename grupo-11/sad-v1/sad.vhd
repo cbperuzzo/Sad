@@ -1,83 +1,37 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
-USE ieee.numeric_std.ALL;
 USE IEEE.math_real.ALL;
 
 ENTITY sad IS
 	GENERIC (
-		-- obrigatÃ³rio ---
-		-- defina as operaÃ§Ãµes considerando o nÃºmero B de bits por amostra
-		B : POSITIVE := 8; -- nÃºmero de bits por amostra
-		-----------------------------------------------------------------------
-		-- desejado (i.e., nÃ£o obrigatÃ³rio) ---
-		-- se vocÃª desejar, pode usar os valores abaixo para descrever uma
-		-- entidade que funcione tanto para a SAD v1 quanto para a SAD v3.
-		N : POSITIVE := 64; -- nÃºmero de amostras por bloco
-		P : POSITIVE := 1 -- nÃºmero de amostras de cada bloco lidas em paralelo
-		-----------------------------------------------------------------------
+		B : POSITIVE := 8; -- número de bits por amostra
+		N : POSITIVE := 64; -- número de amostras por bloco
+		P : POSITIVE := 1 -- número de amostras de cada bloco lidas em paralelo
 	);
 	PORT (
-		-- ATENÃ‡ÃƒO: modifiquem a largura de bits das entradas e saÃ­das que
-		-- estÃ£o marcadas com DEFINIR de acordo com o nÃºmero de bits B e
-		-- de acordo com o necessÃ¡rio para cada versÃ£o da SAD (tentem utilizar
-		-- os valores N e P descritos acima para criar apenas uma descriÃ§Ã£o
-		-- configurÃ¡vel que funcione tanto para a SAD v1 quanto para a SAD v3).
-		-- NÃ£o modifiquem os nomes das portas, apenas a largura de bits quando
-		-- for necessÃ¡rio.
 		clk : IN STD_LOGIC; -- ck
 		enable : IN STD_LOGIC; -- iniciar
 		reset : IN STD_LOGIC; -- reset
-		sample_ori : IN STD_LOGIC_VECTOR ((B - 1) DOWNTO 0); -- Mem_A[end]
-		sample_can : IN STD_LOGIC_VECTOR ((B - 1) DOWNTO 0); -- Mem_B[end]
+		sample_ori : IN STD_LOGIC_VECTOR (B * P - 1 DOWNTO 0); -- Mem_A[end]
+		sample_can : IN STD_LOGIC_VECTOR (B * P - 1 DOWNTO 0); -- Mem_B[end]
 		read_mem : OUT STD_LOGIC; -- read
 		address : OUT STD_LOGIC_VECTOR (INTEGER(ceil(log2(real(N)/real(P)))) - 1 DOWNTO 0); -- end
-		sad_value : OUT STD_LOGIC_VECTOR (13 DOWNTO 0); -- SAD
+		sad_value : OUT STD_LOGIC_VECTOR (INTEGER(ceil(log2((exp(real(B) * log(real(2))) - real(1)) * real(N)))) - 1 DOWNTO 0); -- SAD
 		done : OUT STD_LOGIC -- pronto
-		
 	);
-END ENTITY; -- sad
+END ENTITY;
 
 ARCHITECTURE arch OF sad IS
-	-- descrever
-	-- usar sad_bo e sad_bc (sad_operativo e sad_controle)
-	-- nÃ£o codifiquem toda a arquitetura apenas neste arquivo
-	-- modularizem a descriÃ§Ã£o de vocÃªs...
-	SIGNAL zi, ci, cpa, cpb, zsoma, csoma, csad_reg, menor : std_logic;
- 
+	CONSTANT output_width : POSITIVE := sad_value'length;
+	CONSTANT counter_width : POSITIVE := address'length + 1;
+	SIGNAL zi, ci, less, cpAcpB, zsum, csum, csad_reg : STD_LOGIC;
 BEGIN
-	sad_bc : ENTITY WORK.sad_controle
-		PORT MAP(
-			iniciar => enable, 
-			reset => reset, 
-			clk => clk, 
-			menor => menor, 
-			pronto => done, 
-			read_mem => read_mem, 
-			zi => zi, 
-			ci => ci, 
-			cpa => cpa, 
-			cpb => cpb, 
-			zsoma => zsoma, 
-			csoma => csoma, 
-			csad_reg => csad_reg
-		);
 
-			sad_bo : ENTITY WORK.sad_operativo
-					GENERIC MAP(B, N, P)
-				PORT MAP(
-					clk => clk, 
-					ma => sample_ori, 
-					mb => sample_can, 
-					menor => menor, 
-					ssad => sad_value, 
-					ende => address, 
-					zi => zi, 
-					ci => ci, 
-					cpa => cpa, 
-					cpb => cpb, 
-					zsoma => zsoma, 
-					csoma => csoma, 
-					csad_reg => csad_reg
-				);
+	sad_bc : ENTITY work.sad_controle
+		PORT MAP(enable, reset, clk, less, done, read_mem, zi, ci, cpAcpB, zsum, csum, csad_reg);
 
-END ARCHITECTURE; -- arch
+	sad_bo : ENTITY work.sad_operativo
+		GENERIC MAP(B, P, output_width, counter_width)
+		PORT MAP(clk, zi, ci, cpAcpB, zsum, csum, csad_reg, sample_ori, sample_can, less, sad_value, address);
+
+END ARCHITECTURE;
